@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Dino Training</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dino Training">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#07100b">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+  :root {
+    --bg: #07100b;
+    --card: #111d16;
+    --card-2: #1a2b21;
+    --anel: #2f5a3e;
+    --verde: #4fc34a;
+    --verde-2: #7ee06f;
+    --dino: #7f9a3c;
+    --roxo: #6b2fa0;
+    --roxo-2: #9a5fd0;
+    --aco: #8499b3;
+    --boca: #c0262f;
+    --text: #f2f4ee;
+    --on-verde: #07100b;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif; }
+  body { min-height: 100vh; min-height: 100dvh;
+    padding: env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom)); }
+  button { font-family: inherit; color: inherit; }
+
+  header { padding: 18px 0 14px; display: flex; align-items: center; gap: 14px; }
+  .logo { flex: none; width: 66px; height: 66px; border-radius: 18px; overflow: hidden;
+    border: 2px solid var(--anel); background: #000; box-shadow: 0 0 14px rgba(79,195,74,.25); }
+  .logo img { width: 100%; height: 100%; object-fit: cover; object-position: 30% 22%; transform: scale(1.35); transform-origin: 30% 22%; display: block; }
+  h1 { font-size: 27px; margin: 0; letter-spacing: -.5px; }
+  h1 span { color: var(--verde); }
+  .subtitulo { color: var(--aco); margin-top: 3px; font-size: 15px; min-height: 20px; }
+  .linha { height: 2px; margin: 0 -16px 6px; background: linear-gradient(90deg, transparent, var(--anel), var(--verde), var(--anel), transparent); }
+
+  .dias { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0 12px; }
+  .dias button { background: var(--card); color: var(--aco); border: 2px solid transparent; border-radius: 14px;
+    padding: 13px 0; font-size: 16px; font-weight: 700; }
+  .dias button.ativo { background: var(--verde); color: var(--on-verde); border-color: var(--verde-2); }
+
+  .barra { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .btn-editar { background: var(--roxo); border: 2px solid var(--roxo-2); border-radius: 12px;
+    padding: 9px 16px; font-size: 15px; font-weight: 700; }
+  .btn-editar.ligado { background: var(--verde); border-color: var(--verde-2); color: var(--on-verde); }
+
+  .lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .item { display: flex; align-items: center; gap: 10px; background: var(--card); color: var(--text);
+    border-left: 4px solid var(--verde); border-radius: var(--radius); padding: 0 8px 0 0; min-height: 64px; }
+  .item .abrir { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; background: none;
+    border: 0; padding: 14px 4px 14px 12px; min-height: 64px; }
+  .item .abrir:active { background: var(--card-2); border-radius: 12px; }
+  .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--verde); color: var(--on-verde);
+    display: grid; place-items: center; font-weight: 800; font-size: 15px; }
+  .nome { flex: 1; font-size: 17px; font-weight: 600; }
+  .series { color: var(--aco); font-size: 14px; text-align: right; }
+  .play { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--roxo); color: var(--text);
+    display: grid; place-items: center; font-size: 12px; padding-left: 2px; }
+  .item.edit { gap: 5px; padding-right: 6px; }
+  .item.edit .abrir { padding-left: 8px; gap: 8px; }
+  .item.edit .series { display: none; }
+  .item.edit .nome { font-size: 16px; }
+  .mini { flex: none; width: 34px; height: 38px; border-radius: 10px; border: 0; background: var(--card-2);
+    font-size: 14px; padding: 0; }
+  .mini:disabled { opacity: .25; }
+  .mini.lapis { background: var(--roxo); }
+  .vazio { color: var(--aco); text-align: center; padding: 28px 0; }
+  .acoes-fim { display: grid; gap: 10px; margin-top: 14px; }
+  .btn-sec { background: var(--card-2); border: 2px dashed var(--anel); border-radius: 14px; padding: 14px;
+    font-size: 16px; font-weight: 600; width: 100%; }
+  .btn-sec.perigo { border-style: solid; border-color: var(--boca); color: #ff8a8f; background: transparent; font-size: 14px; }
+
+  /* modais */
+  .fundo { position: fixed; inset: 0; background: rgba(2,6,3,.82); display: none;
+    align-items: flex-end; justify-content: center; z-index: 10; }
+  .fundo.aberto { display: flex; }
+  .modal { width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto; background: var(--card);
+    border-top: 3px solid var(--verde); border-radius: 24px 24px 0 0;
+    padding: 20px 20px calc(24px + env(safe-area-inset-bottom)); animation: sobe .22s ease-out; }
+  @keyframes sobe { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .modal-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .modal h2 { margin: 0; font-size: 21px; }
+  .fechar { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--card-2); font-size: 20px; }
+  .video-box { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9;
+    display: grid; place-items: center; border: 2px solid var(--anel); }
+  .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .thumb { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #000; cursor: pointer; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .btn-play { position: absolute; left: 50%; top: 50%; width: 68px; height: 68px; margin: -34px 0 0 -34px;
+    border-radius: 50%; background: var(--roxo); border: 3px solid var(--text);
+    display: grid; place-items: center; font-size: 28px; padding-left: 5px; box-shadow: 0 4px 14px rgba(0,0,0,.6); }
+  .sem-video { color: var(--aco); text-align: center; padding: 16px; font-size: 14px; }
+  .desc { margin: 16px 0 0; line-height: 1.5; font-size: 16px; color: #d6dccf; white-space: pre-wrap; }
+  .link-yt { display: inline-block; margin-top: 14px; color: var(--roxo-2); font-size: 15px; }
+
+  /* formulário */
+  label { display: block; margin: 14px 0 6px; font-size: 14px; color: var(--aco); font-weight: 600; }
+  input, textarea { width: 100%; background: var(--bg); color: var(--text); border: 2px solid var(--anel);
+    border-radius: 12px; padding: 13px; font-size: 16px; font-family: inherit; }
+  input:focus, textarea:focus { outline: 0; border-color: var(--verde); }
+  textarea { min-height: 96px; resize: vertical; }
+  .previa { margin-top: 10px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000;
+    border: 2px solid var(--anel); display: none; }
+  .previa.ok { display: block; }
+  .previa img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dica { font-size: 13px; color: var(--aco); margin-top: 6px; }
+  .botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .botoes button { border: 0; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; background: var(--card-2); }
+  .botoes .salvar { background: var(--verde); color: var(--on-verde); }
+  .botoes .excluir { grid-column: 1 / -1; background: transparent; border: 2px solid var(--boca); color: #ff8a8f; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo"><img src="logo.jpg" alt="Dino Training"></div>
+    <div>
+      <h1>Dino <span>Training</span></h1>
+      <div class="subtitulo" id="subtitulo"></div>
+    </div>
+  </header>
+  <div class="linha" aria-hidden="true"></div>
+
+  <nav class="dias" id="dias" aria-label="Dias de treino"></nav>
+  <div class="barra"><button class="btn-editar" id="btnEditar">✏️ Editar</button></div>
+  <ul class="lista" id="lista"></ul>
+  <div class="acoes-fim" id="acoesFim"></div>
+
+  <!-- vídeo -->
+  <div class="fundo" id="fundo">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitulo">
+      <div class="modal-topo">
+        <h2 id="mTitulo"></h2>
+        <button class="fechar" id="fechar" aria-label="Fechar">✕</button>
+      </div>
+      <div class="video-box" id="videoBox"></div>
+      <p class="desc" id="mDesc"></p>
+      <a class="link-yt" id="mYt" target="_blank" rel="noopener" hidden>Abrir no YouTube</a>
+    </div>
+  </div>
+
+  <!-- edição -->
+  <div class="fundo" id="fundoEdit">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="eTitulo">
+      <div class="modal-topo">
+        <h2 id="eTitulo">Editar exercício</h2>
+        <button class="fechar" id="eFechar" aria-label="Fechar">✕</button>
+      </div>
+      <label for="eNome">Nome do exercício</label>
+      <input id="eNome" type="text" autocomplete="off">
+      <label for="eYt">Link do vídeo no YouTube</label>
+      <input id="eYt" type="url" inputmode="url" autocomplete="off" autocapitalize="none" placeholder="https://www.youtube.com/watch?v=...">
+      <div class="previa" id="ePrevia"><img alt=""></div>
+      <div class="dica" id="eDica"></div>
+      <label for="eSeries">Séries x repetições</label>
+      <input id="eSeries" type="text" autocomplete="off" placeholder="3x12">
+      <label for="eDesc">Descrição</label>
+      <textarea id="eDesc"></textarea>
+      <div class="botoes">
+        <button id="eCancelar">Cancelar</button>
+        <button class="salvar" id="eSalvar">Salvar</button>
+        <button class="excluir" id="eExcluir">Excluir exercício</button>
+      </div>
+    </div>
+  </div>
+
+<script src="exercicios.js"></script>
+<script>
+(function () {
+  var MAX_POR_DIA = 12;
+  var CHAVE = "dino-exercicios";
+  var DIAS = Object.keys(NOMES_DIAS);
+
+  var $ = function (id) { return document.getElementById(id); };
+  function lerSalvo(k, padrao) { try { return localStorage.getItem(k) || padrao; } catch (e) { return padrao; } }
+  function salvar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  var diaAtual = lerSalvo("diaAtual", DIAS[0]);
+  if (DIAS.indexOf(diaAtual) < 0) diaAtual = DIAS[0];
+  var editando = false;
+  var editIdx = -1;           // -1 = novo exercício
+
+  /* ---------- dados ---------- */
+  function padrao() { return JSON.parse(JSON.stringify(EXERCICIOS)); }
+  function carregarDados() {
+    var d = padrao();
+    try {
+      var s = JSON.parse(localStorage.getItem(CHAVE) || "null");
+      if (s) DIAS.forEach(function (k) { if (Array.isArray(s[k])) d[k] = s[k]; });
+    } catch (e) {}
+    return d;
+  }
+  var dados = carregarDados();
+  function salvarDados() { salvar(CHAVE, JSON.stringify(dados)); }
+  function lista(dia) { return (dados[dia] = dados[dia] || []); }
+
+  function idYoutube(v) {
+    if (!v) return "";
+    v = v.trim();
+    var m = v.match(/(?:[?&]v=|youtu\.be\/|embed\/|shorts\/)([\w-]{11})/);
+    if (m) return m[1];
+    return /^[\w-]{11}$/.test(v) ? v : "";
+  }
+
+  /* ---------- abas e lista ---------- */
+  function desenharDias() {
+    var nav = $("dias");
+    nav.innerHTML = "";
+    DIAS.forEach(function (d) {
+      var b = document.createElement("button");
+      b.textContent = NOMES_DIAS[d];
+      if (d === diaAtual) b.className = "ativo";
+      b.onclick = function () { diaAtual = d; salvar("diaAtual", d); desenharDias(); desenharLista(); };
+      nav.appendChild(b);
+    });
+  }
+
+  function mini(txt, rotulo, fn, desativado, cls) {
+    var b = document.createElement("button");
+    b.className = "mini" + (cls ? " " + cls : "");
+    b.textContent = txt; b.setAttribute("aria-label", rotulo);
+    b.disabled = !!desativado;
+    b.onclick = fn;
+    return b;
+  }
+
+  function mover(i, delta) {
+    var l = lista(diaAtual), j = i + delta;
+    if (j < 0 || j >= l.length) return;
+    var t = l[i]; l[i] = l[j]; l[j] = t;
+    salvarDados(); desenharLista();
+  }
+
+  function desenharLista() {
+    $("subtitulo").textContent = TITULOS_DIAS[diaAtual] || "";
+    $("btnEditar").textContent = editando ? "✔ Concluir" : "✏️ Editar";
+    $("btnEditar").className = "btn-editar" + (editando ? " ligado" : "");
+    var ul = $("lista");
+    ul.innerHTML = "";
+    var itens = lista(diaAtual);
+    if (!itens.length) ul.innerHTML = '<li class="vazio">Nenhum exercício neste dia.</li>';
+
+    itens.forEach(function (ex, i) {
+      var li = document.createElement("li");
+      li.className = "item" + (editando ? " edit" : "");
+      var corpo = document.createElement("button");
+      corpo.className = "abrir";
+      corpo.innerHTML = '<span class="num"></span><span class="nome"></span><span class="series"></span>';
+      corpo.children[0].textContent = i + 1;
+      corpo.children[1].textContent = ex.nome;
+      corpo.children[2].textContent = ex.series || "";
+      corpo.onclick = function () { editando ? abrirEdicao(i) : abrir(ex); };
+      li.appendChild(corpo);
+      if (editando) {
+        li.appendChild(mini("▲", "Subir", function () { mover(i, -1); }, i === 0));
+        li.appendChild(mini("▼", "Descer", function () { mover(i, 1); }, i === itens.length - 1));
+        li.appendChild(mini("✏️", "Editar", function () { abrirEdicao(i); }, false, "lapis"));
+      } else {
+        var p = document.createElement("span");
+        p.className = "play"; p.textContent = "▶";
+        li.appendChild(p);
+      }
+      ul.appendChild(li);
+    });
+
+    var fim = $("acoesFim");
+    fim.innerHTML = "";
+    if (editando) {
+      var add = document.createElement("button");
+      add.className = "btn-sec";
+      add.textContent = itens.length >= MAX_POR_DIA ? "Limite de " + MAX_POR_DIA + " exercícios" : "+ Adicionar exercício";
+      add.disabled = itens.length >= MAX_POR_DIA;
+      add.onclick = function () { abrirEdicao(-1); };
+      fim.appendChild(add);
+      var rest = document.createElement("button");
+      rest.className = "btn-sec perigo";
+      rest.textContent = "Restaurar exercícios originais";
+      rest.onclick = function () {
+        if (confirm("Apagar todas as suas edições e voltar aos exercícios originais?")) {
+          try { localStorage.removeItem(CHAVE); } catch (e) {}
+          dados = padrao(); desenharLista();
+        }
+      };
+      fim.appendChild(rest);
+    }
+  }
+  $("btnEditar").onclick = function () { editando = !editando; desenharLista(); };
+
+  /* ---------- modal de vídeo ---------- */
+  function abrir(ex) {
+    $("mTitulo").textContent = ex.nome;
+    $("mDesc").textContent = ex.descricao || "";
+    var id = idYoutube(ex.youtube);
+    var yt = $("mYt");
+    if (id) { yt.href = "https://www.youtube.com/watch?v=" + id; yt.hidden = false; } else { yt.hidden = true; }
+
+    var box = $("videoBox");
+    box.innerHTML = "";
+    if (id) {
+      var t = document.createElement("button");
+      t.className = "thumb";
+      t.setAttribute("aria-label", "Reproduzir vídeo");
+      var img = document.createElement("img");
+      img.alt = "";
+      img.src = "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg";
+      img.onerror = function () { box.innerHTML = '<div class="sem-video">Sem internet.<br>Conecte-se para ver o vídeo.</div>'; };
+      var p = document.createElement("span");
+      p.className = "btn-play"; p.textContent = "▶";
+      t.appendChild(img); t.appendChild(p);
+      t.onclick = function () {
+        var f = document.createElement("iframe");
+        f.src = "https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&playsinline=1&rel=0";
+        f.allow = "autoplay; encrypted-media; picture-in-picture";
+        f.allowFullscreen = true;
+        box.innerHTML = "";
+        box.appendChild(f);
+      };
+      box.appendChild(t);
+    } else {
+      box.innerHTML = '<div class="sem-video">Este exercício não tem vídeo.<br>Toque em Editar para colar um link do YouTube.</div>';
+    }
+    $("fundo").classList.add("aberto");
+    document.body.style.overflow = "hidden";
+  }
+  function fechar() {
+    $("fundo").classList.remove("aberto");
+    $("videoBox").innerHTML = "";
+    document.body.style.overflow = "";
+  }
+  $("fechar").onclick = fechar;
+  $("fundo").onclick = function (e) { if (e.target === $("fundo")) fechar(); };
+
+  /* ---------- modal de edição ---------- */
+  function atualizarPrevia() {
+    var v = $("eYt").value.trim(), id = idYoutube(v), pv = $("ePrevia"), dica = $("eDica");
+    if (id) {
+      pv.firstElementChild.src = "https://i.ytimg.com/vi/" + id + "/hqdefault.jpg";
+      pv.className = "previa ok"; dica.textContent = "";
+    } else {
+      pv.className = "previa";
+      dica.textContent = v ? "Link não reconhecido. Cole o link completo do vídeo do YouTube." : "Cole o link do vídeo (youtube.com ou youtu.be).";
+    }
+  }
+  $("eYt").oninput = atualizarPrevia;
+
+  function abrirEdicao(i) {
+    editIdx = i;
+    var ex = i >= 0 ? lista(diaAtual)[i] : { nome: "", series: "", descricao: "", youtube: "" };
+    $("eTitulo").textContent = i >= 0 ? "Editar exercício" : "Novo exercício";
+    $("eNome").value = ex.nome || "";
+    $("eYt").value = ex.youtube ? (idYoutube(ex.youtube) ? "https://www.youtube.com/watch?v=" + idYoutube(ex.youtube) : ex.youtube) : "";
+    $("eSeries").value = ex.series || "";
+    $("eDesc").value = ex.descricao || "";
+    $("eExcluir").style.display = i >= 0 ? "" : "none";
+    atualizarPrevia();
+    $("fundoEdit").classList.add("aberto");
+    document.body.style.overflow = "hidden";
+  }
+  function fecharEdicao() {
+    $("fundoEdit").classList.remove("aberto");
+    document.body.style.overflow = "";
+  }
+  $("eFechar").onclick = $("eCancelar").onclick = fecharEdicao;
+  $("fundoEdit").onclick = function (e) { if (e.target === $("fundoEdit")) fecharEdicao(); };
+
+  $("eSalvar").onclick = function () {
+    var nome = $("eNome").value.trim();
+    if (!nome) { $("eNome").focus(); return; }
+    var link = $("eYt").value.trim();
+    var id = idYoutube(link);
+    if (link && !id) { $("eYt").focus(); atualizarPrevia(); return; }
+    var ex = { nome: nome, series: $("eSeries").value.trim(), descricao: $("eDesc").value.trim(), youtube: id };
+    var l = lista(diaAtual);
+    if (editIdx >= 0) l[editIdx] = ex; else if (l.length < MAX_POR_DIA) l.push(ex);
+    salvarDados(); fecharEdicao(); desenharLista();
+  };
+  $("eExcluir").onclick = function () {
+    if (editIdx < 0) return;
+    if (!confirm("Excluir este exercício?")) return;
+    lista(diaAtual).splice(editIdx, 1);
+    salvarDados(); fecharEdicao(); desenharLista();
+  };
+
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { fechar(); fecharEdicao(); } });
+
+  // swipe para baixo fecha o modal de vídeo
+  (function () {
+    var y0 = null, modal = document.querySelector("#fundo .modal");
+    modal.addEventListener("touchstart", function (e) { y0 = modal.scrollTop === 0 ? e.touches[0].clientY : null; }, { passive: true });
+    modal.addEventListener("touchend", function (e) {
+      if (y0 !== null && e.changedTouches[0].clientY - y0 > 90) fechar();
+      y0 = null;
+    }, { passive: true });
+  })();
+
+  /* ---------- init ---------- */
+  desenharDias();
+  desenharLista();
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
