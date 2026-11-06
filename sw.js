@@ -3,8 +3,8 @@
 // Rede primeiro (pega edições novas), cache se estiver offline.
 // Os vídeos vêm do YouTube e não passam por aqui.
 
-const CACHE_APP = "toto-app-v5";
-const ARQUIVOS_APP = ["./", "index.html", "exercicios.js", "manifest.json", "logo.png", "icon-180.png", "icon-512.png"];
+const CACHE_APP = "toto-app-v6";
+const ARQUIVOS_APP = ["./", "index.html", "exercicios.js", "manifest.json", "logo.png", "dados.json", "icon-180.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

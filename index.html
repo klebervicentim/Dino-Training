@@ -53,6 +53,11 @@
   .btn-dia { background: var(--card-2); border: 2px solid var(--borda); border-radius: 12px;
     padding: 9px 14px; font-size: 15px; font-weight: 700; }
   .btn-dia[hidden] { display: none; }
+  .btn-nuvem { margin-right: auto; background: var(--card); border: 2px solid var(--borda); border-radius: 12px;
+    padding: 9px 14px; font-size: 15px; font-weight: 700; }
+  .passos { margin: 10px 0 0; padding-left: 20px; font-size: 14px; line-height: 1.5; color: var(--aco); }
+  .estado { margin: 4px 0 0; font-size: 15px; line-height: 1.4; }
+  .estado.ok { color: var(--destaque); } .estado.erro { color: #ff8a8f; }
   .dias button { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
   .btn-editar { background: var(--azul); border: 2px solid var(--azul-2); border-radius: 12px;
     padding: 9px 16px; font-size: 15px; font-weight: 700; }
@@ -136,6 +141,7 @@
 
   <nav class="dias" id="dias" aria-label="Dias de treino"></nav>
   <div class="barra">
+    <button class="btn-nuvem" id="btnNuvem" aria-label="Sincronização com o GitHub">☁️</button>
     <button class="btn-dia" id="btnDia" hidden>🏷️ Renomear dia</button>
     <button class="btn-editar" id="btnEditar">✏️ Editar</button>
   </div>
@@ -199,6 +205,31 @@
     </div>
   </div>
 
+  <!-- sincronização -->
+  <div class="fundo" id="fundoNuvem">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="nTitulo">
+      <div class="modal-topo">
+        <h2 id="nTitulo">Sincronização</h2>
+        <button class="fechar" id="nFechar" aria-label="Fechar">✕</button>
+      </div>
+      <p class="estado" id="nEstado"></p>
+      <label for="nToken">Token do GitHub</label>
+      <input id="nToken" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="github_pat_...">
+      <ol class="passos">
+        <li>No GitHub: Settings → Developer settings → Fine-grained tokens → Generate new token.</li>
+        <li>Repository access: <b>Only select repositories</b> → Dino-Training.</li>
+        <li>Permissions → Repository → <b>Contents: Read and write</b>.</li>
+        <li>Copie o token e cole acima. Ele fica só neste aparelho.</li>
+      </ol>
+      <div class="botoes">
+        <button id="nFechar2">Fechar</button>
+        <button class="salvar" id="nSalvarToken">Salvar token</button>
+        <button id="nAgora" style="grid-column: 1 / -1">Sincronizar agora</button>
+        <button class="excluir" id="nRemover">Remover token</button>
+      </div>
+    </div>
+  </div>
+
 <script src="exercicios.js"></script>
 <script>
 (function () {
@@ -226,7 +257,8 @@
     return d;
   }
   var dados = carregarDados();
-  function salvarDados() { salvar(CHAVE, JSON.stringify(dados)); }
+  function salvarDados() { salvar(CHAVE, JSON.stringify(dados)); alterou(); }
+  function salvarDiasLocal() { salvar(CHAVE_DIAS, JSON.stringify(nomesDias)); }
   function lista(dia) { return (dados[dia] = dados[dia] || []); }
 
   /* nomes dos dias (sobrepõem NOMES_DIAS / TITULOS_DIAS) */
@@ -328,9 +360,9 @@
       rest.className = "btn-sec perigo";
       rest.textContent = "Restaurar exercícios originais";
       rest.onclick = function () {
-        if (confirm("Apagar todas as suas edições e voltar aos exercícios originais?")) {
+        if (confirm("Apagar todas as suas edições e voltar aos exercícios originais? Se a sincronização estiver ativa, os originais também substituem os dados no GitHub.")) {
           try { localStorage.removeItem(CHAVE); localStorage.removeItem(CHAVE_DIAS); } catch (e) {}
-          dados = padrao(); nomesDias = {}; desenharDias(); desenharLista();
+          dados = padrao(); nomesDias = {}; alterou(); desenharDias(); desenharLista();
         }
       };
       fim.appendChild(rest);
@@ -358,7 +390,7 @@
     if (nome && nome !== NOMES_DIAS[diaAtual]) n.nome = nome;
     if (tit !== (TITULOS_DIAS[diaAtual] || "")) n.titulo = tit;
     if (n.nome || typeof n.titulo === "string") nomesDias[diaAtual] = n; else delete nomesDias[diaAtual];
-    salvar(CHAVE_DIAS, JSON.stringify(nomesDias));
+    salvarDiasLocal(); alterou();
     fecharDia(); desenharDias(); desenharLista();
   };
 
@@ -457,7 +489,7 @@
     salvarDados(); fecharEdicao(); desenharLista();
   };
 
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { fechar(); fecharEdicao(); fecharDia(); } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { fechar(); fecharEdicao(); fecharDia(); fecharNuvem(); } });
 
   // swipe para baixo fecha o modal de vídeo
   (function () {
@@ -469,9 +501,148 @@
     }, { passive: true });
   })();
 
+  /* ---------- sincronização com o GitHub ---------- */
+  var REPO = "klebervicentim/Dino-Training";
+  var API = "https://api.github.com/repos/" + REPO + "/contents/dados.json";
+  var K_TOKEN = "dino-token", K_PEND = "dino-pendente", K_HORA = "dino-sync-hora";
+  var versaoLocal = 0, sincronizando = false, refazer = false, erroSync = "";
+
+  function token() { return lerSalvo(K_TOKEN, ""); }
+  function pendente() { return lerSalvo(K_PEND, "") === "1"; }
+  function snapshot() { return { versao: 1, exercicios: dados, dias: nomesDias }; }
+  function temEdicaoLocal() {
+    try { return !!(localStorage.getItem(CHAVE) || localStorage.getItem(CHAVE_DIAS)); } catch (e) { return false; }
+  }
+  function ocupado() {
+    return editando || !!document.querySelector(".fundo.aberto:not(#fundoNuvem)");
+  }
+
+  function atualizarStatus() {
+    var hora = lerSalvo(K_HORA, "");
+    var txt, cls = "", icone = "";
+    if (erroSync) { txt = "⚠ " + erroSync; cls = "erro"; icone = " ⚠"; }
+    else if (!token()) { txt = "Sem token: modo somente leitura. Suas edições ficam só neste aparelho."; }
+    else if (pendente()) { txt = "⏳ Alterações aguardando envio ao GitHub."; icone = " ⏳"; }
+    else { txt = hora ? "✓ Sincronizado às " + hora + "." : "Token salvo. Toque em Sincronizar agora."; cls = hora ? "ok" : ""; icone = hora ? " ✓" : ""; }
+    $("nEstado").textContent = txt;
+    $("nEstado").className = "estado " + cls;
+    $("btnNuvem").textContent = "☁️" + icone;
+  }
+
+  function mensagemErro(e) {
+    if (e && e.status === 401) return "Token inválido ou expirado.";
+    if (e && (e.status === 403 || e.status === 404)) return "Sem permissão no repositório. Confira o escopo do token (Contents: Read and write).";
+    if (e && e.status) return "GitHub respondeu com erro " + e.status + ".";
+    return "Sem conexão com o GitHub.";
+  }
+  function falha(status) { var e = new Error("http"); e.status = status; return e; }
+
+  function cab(raw) {
+    var h = { Accept: raw ? "application/vnd.github.raw+json" : "application/vnd.github+json" };
+    if (token()) h.Authorization = "Bearer " + token();
+    return h;
+  }
+
+  function lerRemoto() {
+    if (token()) {
+      return fetch(API, { headers: cab(true), cache: "no-store" }).then(function (r) {
+        if (r.status === 404) return null;
+        if (!r.ok) throw falha(r.status);
+        return r.json();
+      });
+    }
+    return fetch("dados.json", { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) return null;
+      return r.json();
+    });
+  }
+
+  function aplicarRemoto(obj) {
+    if (!obj || typeof obj.exercicios !== "object" || !obj.exercicios) return;
+    var d = padrao();
+    DIAS.forEach(function (k) { if (Array.isArray(obj.exercicios[k])) d[k] = obj.exercicios[k]; });
+    dados = d;
+    nomesDias = obj.dias && typeof obj.dias === "object" ? obj.dias : {};
+    salvar(CHAVE, JSON.stringify(dados)); salvarDiasLocal();
+    desenharDias(); desenharLista();
+  }
+
+  function obterSha() {
+    return fetch(API, { headers: cab(false), cache: "no-store" }).then(function (r) {
+      if (r.status === 404) return undefined;
+      if (!r.ok) throw falha(r.status);
+      return r.json().then(function (j) { return j.sha; });
+    });
+  }
+  function gravar(sha, conteudo) {
+    var corpo = { message: "Atualiza treino (iPhone)", content: conteudo };
+    if (sha) corpo.sha = sha;
+    var h = cab(false); h["Content-Type"] = "application/json";
+    return fetch(API, { method: "PUT", headers: h, body: JSON.stringify(corpo) }).then(function (r) {
+      if (!r.ok) throw falha(r.status);
+    });
+  }
+  function enviar() {
+    var v = versaoLocal;
+    var conteudo = btoa(unescape(encodeURIComponent(JSON.stringify(snapshot(), null, 2))));
+    return obterSha().then(function (sha) { return gravar(sha, conteudo); })
+      .catch(function (e) {
+        if (e && (e.status === 409 || e.status === 422)) {      // sha desatualizado: tenta uma vez de novo
+          return obterSha().then(function (sha) { return gravar(sha, conteudo); });
+        }
+        throw e;
+      })
+      .then(function () {
+        if (v === versaoLocal) salvar(K_PEND, "0");
+        var d = new Date();
+        salvar(K_HORA, ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2));
+      });
+  }
+
+  function sincronizar() {
+    if (sincronizando) { refazer = true; return; }
+    if (!token() && pendente()) { erroSync = ""; atualizarStatus(); return; }
+    if (token() && !pendente() && !lerSalvo(K_HORA, "") && temEdicaoLocal()) salvar(K_PEND, "1");   // 1º sync: sobe as edições antigas
+    sincronizando = true; erroSync = ""; atualizarStatus();
+    var trabalho;
+    if (token() && pendente()) trabalho = enviar();
+    else trabalho = lerRemoto().then(function (obj) {
+      if (obj && !pendente() && !ocupado()) aplicarRemoto(obj);
+      if (token()) { var d = new Date(); salvar(K_HORA, ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2)); }
+    });
+    trabalho.catch(function (e) {
+      // erro HTTP mostra aviso; falha de rede (offline) não: o estado ⏳ já indica envio pendente
+      erroSync = (e && e.status) ? mensagemErro(e) : "";
+    }).then(function () {
+      sincronizando = false; atualizarStatus();
+      if (refazer) { refazer = false; sincronizar(); }
+    });
+  }
+  function alterou() { versaoLocal++; salvar(K_PEND, "1"); atualizarStatus(); sincronizar(); }
+
+  function abrirNuvem() { atualizarStatus(); $("nToken").value = ""; $("nToken").placeholder = token() ? "Token salvo (••••••••)" : "github_pat_..."; $("fundoNuvem").classList.add("aberto"); document.body.style.overflow = "hidden"; }
+  function fecharNuvem() { $("fundoNuvem").classList.remove("aberto"); document.body.style.overflow = ""; $("nToken").value = ""; }
+  $("btnNuvem").onclick = abrirNuvem;
+  $("nFechar").onclick = $("nFechar2").onclick = fecharNuvem;
+  $("fundoNuvem").onclick = function (e) { if (e.target === $("fundoNuvem")) fecharNuvem(); };
+  $("nSalvarToken").onclick = function () {
+    var t = $("nToken").value.trim();
+    if (!t) { $("nToken").focus(); return; }
+    salvar(K_TOKEN, t); $("nToken").value = ""; sincronizar();
+  };
+  $("nAgora").onclick = function () { sincronizar(); };
+  $("nRemover").onclick = function () {
+    if (!confirm("Remover o token deste aparelho? As edições continuam salvas aqui, mas não serão enviadas.")) return;
+    try { localStorage.removeItem(K_TOKEN); } catch (e) {}
+    erroSync = ""; atualizarStatus();
+  };
+  window.addEventListener("online", sincronizar);
+
   /* ---------- init ---------- */
   desenharDias();
   desenharLista();
+  atualizarStatus();
+  sincronizar();
   if ("serviceWorker" in navigator && location.protocol !== "file:") {
     navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(function () {});
   }
