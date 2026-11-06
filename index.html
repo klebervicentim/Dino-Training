@@ -49,7 +49,11 @@
     padding: 13px 0; font-size: 16px; font-weight: 700; }
   .dias button.ativo { background: var(--destaque); color: var(--on-destaque); border-color: var(--destaque-2); }
 
-  .barra { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+  .barra { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; }
+  .btn-dia { background: var(--card-2); border: 2px solid var(--borda); border-radius: 12px;
+    padding: 9px 14px; font-size: 15px; font-weight: 700; }
+  .btn-dia[hidden] { display: none; }
+  .dias button { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
   .btn-editar { background: var(--azul); border: 2px solid var(--azul-2); border-radius: 12px;
     padding: 9px 16px; font-size: 15px; font-weight: 700; }
   .btn-editar.ligado { background: var(--destaque); border-color: var(--destaque-2); color: var(--on-destaque); }
@@ -131,7 +135,10 @@
   <div class="linha" aria-hidden="true"></div>
 
   <nav class="dias" id="dias" aria-label="Dias de treino"></nav>
-  <div class="barra"><button class="btn-editar" id="btnEditar">✏️ Editar</button></div>
+  <div class="barra">
+    <button class="btn-dia" id="btnDia" hidden>🏷️ Renomear dia</button>
+    <button class="btn-editar" id="btnEditar">✏️ Editar</button>
+  </div>
   <ul class="lista" id="lista"></ul>
   <div class="acoes-fim" id="acoesFim"></div>
 
@@ -173,6 +180,25 @@
     </div>
   </div>
 
+  <!-- renomear dia -->
+  <div class="fundo" id="fundoDia">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dTitulo">
+      <div class="modal-topo">
+        <h2 id="dTitulo">Renomear dia</h2>
+        <button class="fechar" id="dFechar" aria-label="Fechar">✕</button>
+      </div>
+      <label for="dNome">Nome na aba (até 8 letras)</label>
+      <input id="dNome" type="text" maxlength="8" autocomplete="off">
+      <label for="dTit">Título do treino</label>
+      <input id="dTit" type="text" maxlength="40" autocomplete="off" placeholder="Ex: Peito e Tríceps">
+      <div class="dica">Deixe em branco para voltar ao nome original.</div>
+      <div class="botoes">
+        <button id="dCancelar">Cancelar</button>
+        <button class="salvar" id="dSalvar">Salvar</button>
+      </div>
+    </div>
+  </div>
+
 <script src="exercicios.js"></script>
 <script>
 (function () {
@@ -203,6 +229,22 @@
   function salvarDados() { salvar(CHAVE, JSON.stringify(dados)); }
   function lista(dia) { return (dados[dia] = dados[dia] || []); }
 
+  /* nomes dos dias (sobrepõem NOMES_DIAS / TITULOS_DIAS) */
+  var CHAVE_DIAS = "dino-dias";
+  function carregarDias() {
+    try {
+      var s = JSON.parse(localStorage.getItem(CHAVE_DIAS) || "null");
+      if (s && typeof s === "object") return s;
+    } catch (e) {}
+    return {};
+  }
+  var nomesDias = carregarDias();
+  function nomeDia(d) { return (nomesDias[d] && nomesDias[d].nome) || NOMES_DIAS[d]; }
+  function tituloDia(d) {
+    var n = nomesDias[d];
+    return n && typeof n.titulo === "string" ? n.titulo : (TITULOS_DIAS[d] || "");
+  }
+
   function idYoutube(v) {
     if (!v) return "";
     v = v.trim();
@@ -217,7 +259,7 @@
     nav.innerHTML = "";
     DIAS.forEach(function (d) {
       var b = document.createElement("button");
-      b.textContent = NOMES_DIAS[d];
+      b.textContent = nomeDia(d);
       if (d === diaAtual) b.className = "ativo";
       b.onclick = function () { diaAtual = d; salvar("diaAtual", d); desenharDias(); desenharLista(); };
       nav.appendChild(b);
@@ -241,7 +283,8 @@
   }
 
   function desenharLista() {
-    $("subtitulo").textContent = TITULOS_DIAS[diaAtual] || "";
+    $("subtitulo").textContent = tituloDia(diaAtual);
+    $("btnDia").hidden = !editando;
     $("btnEditar").textContent = editando ? "✔ Concluir" : "✏️ Editar";
     $("btnEditar").className = "btn-editar" + (editando ? " ligado" : "");
     var ul = $("lista");
@@ -286,14 +329,38 @@
       rest.textContent = "Restaurar exercícios originais";
       rest.onclick = function () {
         if (confirm("Apagar todas as suas edições e voltar aos exercícios originais?")) {
-          try { localStorage.removeItem(CHAVE); } catch (e) {}
-          dados = padrao(); desenharLista();
+          try { localStorage.removeItem(CHAVE); localStorage.removeItem(CHAVE_DIAS); } catch (e) {}
+          dados = padrao(); nomesDias = {}; desenharDias(); desenharLista();
         }
       };
       fim.appendChild(rest);
     }
   }
   $("btnEditar").onclick = function () { editando = !editando; desenharLista(); };
+
+  /* ---------- renomear dia ---------- */
+  function fecharDia() {
+    $("fundoDia").classList.remove("aberto");
+    document.body.style.overflow = "";
+  }
+  $("btnDia").onclick = function () {
+    $("dTitulo").textContent = "Renomear " + NOMES_DIAS[diaAtual];
+    $("dNome").value = nomeDia(diaAtual);
+    $("dTit").value = tituloDia(diaAtual);
+    $("fundoDia").classList.add("aberto");
+    document.body.style.overflow = "hidden";
+  };
+  $("dFechar").onclick = $("dCancelar").onclick = fecharDia;
+  $("fundoDia").onclick = function (e) { if (e.target === $("fundoDia")) fecharDia(); };
+  $("dSalvar").onclick = function () {
+    var nome = $("dNome").value.trim(), tit = $("dTit").value.trim();
+    var n = {};
+    if (nome && nome !== NOMES_DIAS[diaAtual]) n.nome = nome;
+    if (tit !== (TITULOS_DIAS[diaAtual] || "")) n.titulo = tit;
+    if (n.nome || typeof n.titulo === "string") nomesDias[diaAtual] = n; else delete nomesDias[diaAtual];
+    salvar(CHAVE_DIAS, JSON.stringify(nomesDias));
+    fecharDia(); desenharDias(); desenharLista();
+  };
 
   /* ---------- modal de vídeo ---------- */
   function abrir(ex) {
@@ -390,7 +457,7 @@
     salvarDados(); fecharEdicao(); desenharLista();
   };
 
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { fechar(); fecharEdicao(); } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { fechar(); fecharEdicao(); fecharDia(); } });
 
   // swipe para baixo fecha o modal de vídeo
   (function () {
