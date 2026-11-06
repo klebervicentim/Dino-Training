@@ -46,6 +46,7 @@ const EXERCICIOS = {
     { nome: "Remada unilateral com halter (serrote)", series: "3x10–12 por lado", descricao: "Mão e joelho apoiados no banco. Descanso: 90 s.", youtube: "qcDIao-CoFU" },
     { nome: "Crucifixo invertido (deltoide posterior)", series: "2x12–15", descricao: "De bruços no banco ou inclinado em pé; peso leve. Descanso: 60 s.", youtube: "0L4I4eiQhf4" },
     { nome: "Rosca direta com barra", series: "2x10–12", descricao: "Cotovelos junto ao corpo, sem balançar o tronco. Descanso: 60 s.", youtube: "yopIHJ-jr3w" },
+    { nome: "Flexão de punho com halter (palma para cima)", series: "3x12–15", descricao: "Para o cotovelo de golfista. Antebraço apoiado no banco com o punho para fora, descida em 3 s. Dor de até 3–4/10 é aceitável, desde que no dia seguinte você esteja igual ou melhor. Descanso: 60 s.", youtube: "" },
   ],
   dia3: [
     { nome: "Agachamento búlgaro com halteres", series: "3x8–10 por perna", descricao: "Pé de trás apoiado no banco. Descanso: 90 s.", youtube: "Qor7IMSvQcE" },
