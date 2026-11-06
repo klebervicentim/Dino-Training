@@ -3,7 +3,7 @@
 // Rede primeiro (pega edições novas), cache se estiver offline.
 // Os vídeos vêm do YouTube e não passam por aqui.
 
-const CACHE_APP = "toto-app-v4";
+const CACHE_APP = "toto-app-v5";
 const ARQUIVOS_APP = ["./", "index.html", "exercicios.js", "manifest.json", "logo.png", "icon-180.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -32,7 +32,7 @@ self.addEventListener("fetch", (e) => {
 async function redePrimeiro(req) {
   const cache = await caches.open(CACHE_APP);
   try {
-    const r = await fetch(req);
+    const r = await fetch(req, { cache: "no-cache" }); // revalida com o servidor (ignora o max-age=600 do GitHub Pages)
     if (r.ok) cache.put(req, r.clone());
     return r;
   } catch (err) {
