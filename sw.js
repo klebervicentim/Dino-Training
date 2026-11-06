@@ -1,10 +1,10 @@
-// Service worker do Dino Training.
+// Service worker do Toto Training.
 // Guarda o app (html/js/manifest/ícones) para a lista abrir sem internet.
 // Rede primeiro (pega edições novas), cache se estiver offline.
 // Os vídeos vêm do YouTube e não passam por aqui.
 
-const CACHE_APP = "dino-app-v3";
-const ARQUIVOS_APP = ["./", "index.html", "exercicios.js", "manifest.json", "logo.jpg", "icon-180.png", "icon-512.png"];
+const CACHE_APP = "toto-app-v4";
+const ARQUIVOS_APP = ["./", "index.html", "exercicios.js", "manifest.json", "logo.png", "icon-180.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(

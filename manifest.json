@@ -1,12 +1,12 @@
 {
-  "name": "Dino Training",
-  "short_name": "Dino Training",
+  "name": "Toto Training",
+  "short_name": "Toto Training",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#07100b",
-  "theme_color": "#07100b",
+  "background_color": "#0a1630",
+  "theme_color": "#0a1630",
   "icons": [
     { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }

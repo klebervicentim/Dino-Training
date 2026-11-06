@@ -2,30 +2,30 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Dino Training</title>
+<title>Toto Training</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Dino Training">
+<meta name="apple-mobile-web-app-title" content="Toto Training">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#07100b">
+<meta name="theme-color" content="#0a1630">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
 <style>
   :root {
-    --bg: #07100b;
-    --card: #111d16;
-    --card-2: #1a2b21;
-    --anel: #2f5a3e;
-    --verde: #4fc34a;
-    --verde-2: #7ee06f;
-    --dino: #7f9a3c;
-    --roxo: #6b2fa0;
-    --roxo-2: #9a5fd0;
-    --aco: #8499b3;
-    --boca: #c0262f;
+    --bg: #0a1630;
+    --card: #12234a;
+    --card-2: #1b3263;
+    --borda: #3c5aa6;
+    --destaque: #ffcb05;
+    --destaque-2: #ffe066;
+    --azul: #2a75bb;
+    --vermelho: #ee1515;
+    --azul-2: #7ab6ee;
+    --aco: #9db7d9;
+    --perigo: #ee1515;
     --text: #f2f4ee;
-    --on-verde: #07100b;
+    --on-destaque: #0a1630;
     --radius: 16px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -37,34 +37,34 @@
 
   header { padding: 18px 0 14px; display: flex; align-items: center; gap: 14px; }
   .logo { flex: none; width: 66px; height: 66px; border-radius: 18px; overflow: hidden;
-    border: 2px solid var(--anel); background: #000; box-shadow: 0 0 14px rgba(79,195,74,.25); }
-  .logo img { width: 100%; height: 100%; object-fit: cover; object-position: 30% 22%; transform: scale(1.35); transform-origin: 30% 22%; display: block; }
+    border: 2px solid var(--destaque); background: linear-gradient(180deg, #3c5aa6, #0f1e45); box-shadow: 0 0 14px rgba(255,203,5,.3); }
+  .logo img { width: 100%; height: 100%; object-fit: contain; padding: 4px; display: block; }
   h1 { font-size: 27px; margin: 0; letter-spacing: -.5px; }
-  h1 span { color: var(--verde); }
+  h1 span { color: var(--destaque); -webkit-text-stroke: 4px var(--borda); paint-order: stroke fill; }
   .subtitulo { color: var(--aco); margin-top: 3px; font-size: 15px; min-height: 20px; }
-  .linha { height: 2px; margin: 0 -16px 6px; background: linear-gradient(90deg, transparent, var(--anel), var(--verde), var(--anel), transparent); }
+  .linha { height: 2px; margin: 0 -16px 6px; background: linear-gradient(90deg, transparent, var(--borda), var(--destaque), var(--borda), transparent); }
 
   .dias { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0 12px; }
   .dias button { background: var(--card); color: var(--aco); border: 2px solid transparent; border-radius: 14px;
     padding: 13px 0; font-size: 16px; font-weight: 700; }
-  .dias button.ativo { background: var(--verde); color: var(--on-verde); border-color: var(--verde-2); }
+  .dias button.ativo { background: var(--destaque); color: var(--on-destaque); border-color: var(--destaque-2); }
 
   .barra { display: flex; justify-content: flex-end; margin-bottom: 10px; }
-  .btn-editar { background: var(--roxo); border: 2px solid var(--roxo-2); border-radius: 12px;
+  .btn-editar { background: var(--azul); border: 2px solid var(--azul-2); border-radius: 12px;
     padding: 9px 16px; font-size: 15px; font-weight: 700; }
-  .btn-editar.ligado { background: var(--verde); border-color: var(--verde-2); color: var(--on-verde); }
+  .btn-editar.ligado { background: var(--destaque); border-color: var(--destaque-2); color: var(--on-destaque); }
 
   .lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
   .item { display: flex; align-items: center; gap: 10px; background: var(--card); color: var(--text);
-    border-left: 4px solid var(--verde); border-radius: var(--radius); padding: 0 8px 0 0; min-height: 64px; }
+    border-left: 4px solid var(--destaque); border-radius: var(--radius); padding: 0 8px 0 0; min-height: 64px; }
   .item .abrir { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; text-align: left; background: none;
     border: 0; padding: 14px 4px 14px 12px; min-height: 64px; }
   .item .abrir:active { background: var(--card-2); border-radius: 12px; }
-  .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--verde); color: var(--on-verde);
+  .num { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--destaque); color: var(--on-destaque);
     display: grid; place-items: center; font-weight: 800; font-size: 15px; }
   .nome { flex: 1; font-size: 17px; font-weight: 600; }
   .series { color: var(--aco); font-size: 14px; text-align: right; }
-  .play { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--roxo); color: var(--text);
+  .play { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--vermelho); color: var(--text);
     display: grid; place-items: center; font-size: 12px; padding-left: 2px; }
   .item.edit { gap: 5px; padding-right: 6px; }
   .item.edit .abrir { padding-left: 8px; gap: 8px; }
@@ -73,58 +73,58 @@
   .mini { flex: none; width: 34px; height: 38px; border-radius: 10px; border: 0; background: var(--card-2);
     font-size: 14px; padding: 0; }
   .mini:disabled { opacity: .25; }
-  .mini.lapis { background: var(--roxo); }
+  .mini.lapis { background: var(--azul); }
   .vazio { color: var(--aco); text-align: center; padding: 28px 0; }
   .acoes-fim { display: grid; gap: 10px; margin-top: 14px; }
-  .btn-sec { background: var(--card-2); border: 2px dashed var(--anel); border-radius: 14px; padding: 14px;
+  .btn-sec { background: var(--card-2); border: 2px dashed var(--borda); border-radius: 14px; padding: 14px;
     font-size: 16px; font-weight: 600; width: 100%; }
-  .btn-sec.perigo { border-style: solid; border-color: var(--boca); color: #ff8a8f; background: transparent; font-size: 14px; }
+  .btn-sec.perigo { border-style: solid; border-color: var(--perigo); color: #ff8a8f; background: transparent; font-size: 14px; }
 
   /* modais */
-  .fundo { position: fixed; inset: 0; background: rgba(2,6,3,.82); display: none;
+  .fundo { position: fixed; inset: 0; background: rgba(3,8,20,.85); display: none;
     align-items: flex-end; justify-content: center; z-index: 10; }
   .fundo.aberto { display: flex; }
   .modal { width: 100%; max-width: 560px; max-height: 92dvh; overflow-y: auto; background: var(--card);
-    border-top: 3px solid var(--verde); border-radius: 24px 24px 0 0;
+    border-top: 3px solid var(--destaque); border-radius: 24px 24px 0 0;
     padding: 20px 20px calc(24px + env(safe-area-inset-bottom)); animation: sobe .22s ease-out; }
   @keyframes sobe { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
   .modal-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
   .modal h2 { margin: 0; font-size: 21px; }
   .fechar { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--card-2); font-size: 20px; }
   .video-box { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9;
-    display: grid; place-items: center; border: 2px solid var(--anel); }
+    display: grid; place-items: center; border: 2px solid var(--borda); }
   .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .thumb { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; background: #000; cursor: pointer; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .thumb .btn-play { position: absolute; left: 50%; top: 50%; width: 68px; height: 68px; margin: -34px 0 0 -34px;
-    border-radius: 50%; background: var(--roxo); border: 3px solid var(--text);
+    border-radius: 50%; background: var(--vermelho); border: 3px solid var(--text);
     display: grid; place-items: center; font-size: 28px; padding-left: 5px; box-shadow: 0 4px 14px rgba(0,0,0,.6); }
   .sem-video { color: var(--aco); text-align: center; padding: 16px; font-size: 14px; }
   .desc { margin: 16px 0 0; line-height: 1.5; font-size: 16px; color: #d6dccf; white-space: pre-wrap; }
-  .link-yt { display: inline-block; margin-top: 14px; color: var(--roxo-2); font-size: 15px; }
+  .link-yt { display: inline-block; margin-top: 14px; color: var(--azul-2); font-size: 15px; }
 
   /* formulário */
   label { display: block; margin: 14px 0 6px; font-size: 14px; color: var(--aco); font-weight: 600; }
-  input, textarea { width: 100%; background: var(--bg); color: var(--text); border: 2px solid var(--anel);
+  input, textarea { width: 100%; background: var(--bg); color: var(--text); border: 2px solid var(--borda);
     border-radius: 12px; padding: 13px; font-size: 16px; font-family: inherit; }
-  input:focus, textarea:focus { outline: 0; border-color: var(--verde); }
+  input:focus, textarea:focus { outline: 0; border-color: var(--destaque); }
   textarea { min-height: 96px; resize: vertical; }
   .previa { margin-top: 10px; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000;
-    border: 2px solid var(--anel); display: none; }
+    border: 2px solid var(--borda); display: none; }
   .previa.ok { display: block; }
   .previa img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .dica { font-size: 13px; color: var(--aco); margin-top: 6px; }
   .botoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
   .botoes button { border: 0; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; background: var(--card-2); }
-  .botoes .salvar { background: var(--verde); color: var(--on-verde); }
-  .botoes .excluir { grid-column: 1 / -1; background: transparent; border: 2px solid var(--boca); color: #ff8a8f; }
+  .botoes .salvar { background: var(--destaque); color: var(--on-destaque); }
+  .botoes .excluir { grid-column: 1 / -1; background: transparent; border: 2px solid var(--perigo); color: #ff8a8f; }
 </style>
 </head>
 <body>
   <header>
-    <div class="logo"><img src="logo.jpg" alt="Dino Training"></div>
+    <div class="logo"><img src="logo.png" alt="Toto Training"></div>
     <div>
-      <h1>Dino <span>Training</span></h1>
+      <h1>Toto <span>Training</span></h1>
       <div class="subtitulo" id="subtitulo"></div>
     </div>
   </header>
